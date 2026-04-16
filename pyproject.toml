@@ -31,3 +31,7 @@ Issues = "https://github.com/papyDoctor/auserial/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/auserial"]
+
+[tool.pyright]
+include = ["src", "examples"]
+extraPaths = ["src"]

@@ -49,13 +49,13 @@ class AUSerial:
         self._read_future: asyncio.Future[bytes] | None = None
         self._write_future: asyncio.Future[int] | None = None
 
-    async def open(self):
+    async def open(self) -> None:
         self._loop = asyncio.get_running_loop()
         # Locks must be created in the context of the event loop that will use them
         self._read_lock = asyncio.Lock()
         self._write_lock = asyncio.Lock()
 
-    async def read(self, n_bytes: int = 64):
+    async def read(self, n_bytes: int = 64) -> bytes:
         assert self._loop is not None, "Call open() first"
         async with self._read_lock:
             loop = self._loop
@@ -77,7 +77,7 @@ class AUSerial:
             loop.add_reader(self.fd, on_readable)
             return await future
 
-    async def write(self, data: bytes):
+    async def write(self, data: bytes) -> int:
         assert self._loop is not None, "Call open() first"
         async with self._write_lock:
             loop = self._loop
@@ -99,7 +99,7 @@ class AUSerial:
             loop.add_writer(self.fd, on_writable)
             return await future
 
-    def close(self):
+    def close(self) -> None:
         if self._loop is None:
             return  # idempotent
         loop = self._loop
@@ -113,7 +113,7 @@ class AUSerial:
         self._loop = None
 
     # Context manager async
-    async def __aenter__(self):
+    async def __aenter__(self) -> "AUSerial":
         await self.open()
         return self
 
