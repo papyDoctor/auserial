@@ -25,6 +25,9 @@ classifiers = [
     "Topic :: Terminals :: Serial",
 ]
 
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-asyncio>=0.23"]
+
 [project.urls]
 Repository = "https://github.com/papyDoctor/auserial"
 Issues = "https://github.com/papyDoctor/auserial/issues"
@@ -33,5 +36,9 @@ Issues = "https://github.com/papyDoctor/auserial/issues"
 packages = ["src/auserial"]
 
 [tool.pyright]
-include = ["src", "examples"]
+include = ["src", "examples", "tests"]
 extraPaths = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

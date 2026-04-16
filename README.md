@@ -74,16 +74,26 @@ async with AUSerial("/dev/ttyUSB0", baudrate=termios.B9600) as serial:
     ...
 ```
 
-### Manual open/close
+### Timeout
 
 ```python
-serial = AUSerial("/dev/ttyUSB0")
-await serial.open()
-try:
-    await serial.write(b"ping\n")
-    response = await serial.read(n_bytes=128)
-finally:
-    serial.close()
+import asyncio
+
+from auserial import AUSerial
+
+
+async def main():
+    async with AUSerial("/dev/cu.usbmodem21301") as serial:
+        await serial.write(b"AT\r\n")
+        try:
+            data = await asyncio.wait_for(serial.read(), timeout=1.0)
+        except TimeoutError:
+            print("No response within 1s")
+        else:
+            print(f"Received: {data!r}")
+
+
+asyncio.run(main())
 ```
 
 ## API
