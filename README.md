@@ -96,18 +96,35 @@ async def main():
 asyncio.run(main())
 ```
 
+### Discovering ports
+
+```python
+from auserial import list_ports
+
+for p in list_ports():
+    print(p.path, p.description, p.hwid)
+# /dev/cu.usbmodem21301  Raspberry Pi Pico  USB VID:PID=2E8A:0008 SER=E660B4400765AB25
+```
+
+`list_ports()` is synchronous and returns `list[PortInfo]`. On Linux it reads
+USB metadata from `/sys/class/tty/<name>/device/`. On macOS it parses `ioreg`
+output and links each `/dev/cu.*` to its USB ancestor (Bluetooth and debug
+consoles are filtered out). Pure stdlib, no extra dependency.
+
 ## API
 
-| Method                          | Description                                   |
+| Method / function               | Description                                   |
 |---------------------------------|-----------------------------------------------|
 | `AUSerial(path, baudrate=...)`  | Opens the tty in non-blocking mode            |
 | `await serial.open()`           | Binds the instance to the current event loop  |
 | `await serial.read(n_bytes=64)` | Waits until data is available, returns bytes  |
 | `await serial.write(data)`      | Waits until writable, returns bytes written   |
 | `serial.close()`                | Cancels pending I/O and closes the fd         |
+| `list_ports() -> list[PortInfo]`| Enumerate available serial ports (sync)       |
+| `PortInfo(path, description, hwid)` | NamedTuple returned by `list_ports()`     |
 
-The class also implements `__aenter__` / `__aexit__`, so `async with` is the
-recommended usage pattern.
+The `AUSerial` class also implements `__aenter__` / `__aexit__`, so
+`async with` is the recommended usage pattern.
 
 ## Limitations
 
