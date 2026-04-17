@@ -31,15 +31,60 @@ import asyncio
 # Windows would need a completely different implementation.
 
 
+_BYTESIZE = {5: termios.CS5, 6: termios.CS6, 7: termios.CS7, 8: termios.CS8}
+
+
 class AUSerial:
-    def __init__(self, path: str, baudrate: int = termios.B115200):
+    def __init__(
+        self,
+        path: str,
+        baudrate: int = termios.B115200,
+        bytesize: int = 8,
+        parity: str = "N",
+        stopbits: int = 1,
+        xonxoff: bool = False,
+        rtscts: bool = False,
+    ):
+        if bytesize not in _BYTESIZE:
+            raise ValueError(f"bytesize must be one of {sorted(_BYTESIZE)}, got {bytesize}")
+        if parity not in ("N", "E", "O"):
+            raise ValueError(f"parity must be 'N', 'E', or 'O', got {parity!r}")
+        if stopbits not in (1, 2):
+            raise ValueError(f"stopbits must be 1 or 2, got {stopbits}")
+
         self.fd = os.open(path, os.O_RDWR | os.O_NOCTTY | os.O_NONBLOCK)
         try:
             attrs = termios.tcgetattr(self.fd)
+
+            # Raw mode — no input/output processing, no echo, no signals.
+            attrs[0] = 0  # iflag
+            attrs[1] = 0  # oflag
+            attrs[3] = 0  # lflag
+
+            # cflag: base + bytesize + parity + stopbits + hw flow control.
+            cflag = termios.CLOCAL | termios.CREAD | _BYTESIZE[bytesize]
+            if parity in ("E", "O"):
+                cflag |= termios.PARENB
+            if parity == "O":
+                cflag |= termios.PARODD
+            if stopbits == 2:
+                cflag |= termios.CSTOPB
+            if rtscts:
+                cflag |= termios.CRTSCTS
+            attrs[2] = cflag
+
+            # Software flow control.
+            if xonxoff:
+                attrs[0] |= termios.IXON | termios.IXOFF
+
+            # Baudrate.
             attrs[4] = baudrate
             attrs[5] = baudrate
-            attrs[2] = termios.CS8 | termios.CLOCAL | termios.CREAD
-            attrs[3] = 0
+
+            # Non-blocking reads: return immediately if no data.
+            attrs[6][termios.VMIN] = 0
+            attrs[6][termios.VTIME] = 0
+
             termios.tcsetattr(self.fd, termios.TCSANOW, attrs)
         except Exception:
             os.close(self.fd)
