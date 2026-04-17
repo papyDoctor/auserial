@@ -46,7 +46,9 @@ class AUSerial:
         rtscts: bool = False,
     ):
         if bytesize not in _BYTESIZE:
-            raise ValueError(f"bytesize must be one of {sorted(_BYTESIZE)}, got {bytesize}")
+            raise ValueError(
+                f"bytesize must be one of {sorted(_BYTESIZE)}, got {bytesize}"
+            )
         if parity not in ("N", "E", "O"):
             raise ValueError(f"parity must be 'N', 'E', or 'O', got {parity!r}")
         if stopbits not in (1, 2):
@@ -93,6 +95,7 @@ class AUSerial:
         self._loop: asyncio.AbstractEventLoop | None = None
         self._read_future: asyncio.Future[bytes] | None = None
         self._write_future: asyncio.Future[int] | None = None
+        self._read_buf: bytearray = bytearray()
 
     async def open(self) -> None:
         self._loop = asyncio.get_running_loop()
@@ -100,27 +103,67 @@ class AUSerial:
         self._read_lock = asyncio.Lock()
         self._write_lock = asyncio.Lock()
 
+    async def _read_raw(self, n_bytes: int = 64) -> bytes:
+        """Read directly from fd. Caller must hold _read_lock."""
+        assert self._loop is not None, "Call open() first"
+
+        loop = self._loop
+        self._read_future = loop.create_future()
+        future = self._read_future
+
+        def on_readable():
+            try:
+                chunk = os.read(self.fd, n_bytes)
+            except Exception as e:
+                if not future.done():
+                    future.set_exception(e)
+            else:
+                if not future.done():
+                    future.set_result(chunk)
+            finally:
+                loop.remove_reader(self.fd)
+
+        loop.add_reader(self.fd, on_readable)
+        return await future or b""
+
     async def read(self, n_bytes: int = 64) -> bytes:
         assert self._loop is not None, "Call open() first"
         async with self._read_lock:
-            loop = self._loop
-            self._read_future = self._loop.create_future()
-            future = self._read_future
+            if self._read_buf:
+                data = bytes(self._read_buf[:n_bytes])
+                del self._read_buf[:n_bytes]
+                return data
+            return await self._read_raw(n_bytes)
 
-            def on_readable():
-                try:
-                    data = os.read(self.fd, n_bytes)
-                except Exception as e:
-                    if not future.done():
-                        future.set_exception(e)
-                else:
-                    if not future.done():
-                        future.set_result(data)
-                finally:
-                    loop.remove_reader(self.fd)
+    async def read_until(self, terminator: bytes, size: int | None = None) -> bytes:
+        assert self._loop is not None, "Call open() first"
+        async with self._read_lock:
+            buf = self._read_buf
 
-            loop.add_reader(self.fd, on_readable)
-            return await future
+            while True:
+                idx = buf.find(terminator)
+                if idx != -1:
+                    end = idx + len(terminator)
+                    result = bytes(buf[:end])
+                    del buf[:end]
+                    return result
+
+                if size is not None and len(buf) >= size:
+                    result = bytes(buf[:size])
+                    del buf[:size]
+                    return result
+
+                chunk = (
+                    await self._read_raw()
+                )  # always reads from fd, never touches buf
+                if not chunk:
+                    if buf:
+                        result = bytes(buf)
+                        buf.clear()
+                        return result
+                    raise EOFError("EOF reached before terminator")
+
+                buf.extend(chunk)
 
     async def write(self, data: bytes) -> int:
         assert self._loop is not None, "Call open() first"
