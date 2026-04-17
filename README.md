@@ -115,15 +115,16 @@ consoles are filtered out). Pure stdlib, no extra dependency.
 
 ## API
 
-| Method / function               | Description                                   |
-|---------------------------------|-----------------------------------------------|
-| `AUSerial(path, baudrate=...)`  | Opens the tty in non-blocking mode            |
-| `await serial.open()`           | Binds the instance to the current event loop  |
-| `await serial.read(n_bytes=64)` | Waits until data is available, returns bytes  |
-| `await serial.write(data)`      | Waits until writable, returns bytes written   |
-| `serial.close()`                | Cancels pending I/O and closes the fd         |
-| `list_ports() -> list[PortInfo]`| Enumerate available serial ports (sync)       |
-| `PortInfo(path, description, hwid)` | NamedTuple returned by `list_ports()`     |
+| Method / function                           | Description                                        |
+|---------------------------------------------|----------------------------------------------------|
+| `AUSerial(path, baudrate=...)`              | Opens the tty in non-blocking mode                 |
+| `await serial.open()`                       | Binds the instance to the current event loop       |
+| `await serial.read(n_bytes=64)`             | Waits until data is available, returns bytes       |
+| `await serial.read_until(terminator=b"\n")` | Reads until the terminator is found, returns bytes |
+| `await serial.write(data)`                  | Waits until writable, returns bytes written        |
+| `serial.close()`                            | Cancels pending I/O and closes the fd              |
+| `list_ports() -> list[PortInfo]`            | Enumerate available serial ports (sync)            |
+| `PortInfo(path, description, hwid)`         | NamedTuple returned by `list_ports()`              |
 
 The `AUSerial` class also implements `__aenter__` / `__aexit__`, so
 `async with` is the recommended usage pattern.
