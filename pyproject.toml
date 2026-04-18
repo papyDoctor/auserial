@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "auserial"
-version = "0.4.1"
+version = "0.4.2"
 description = "Truly async serial port for Linux/macOS using epoll/kqueue"
 readme = "README.md"
 license = "MIT"
