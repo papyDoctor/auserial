@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "auserial"
-version = "0.4.2"
+version = "1.0.0"
 description = "Truly async serial port for Linux/macOS using epoll/kqueue"
 readme = "README.md"
 license = "MIT"
@@ -13,7 +13,7 @@ authors = [{ name = "Monnom Olivier", email = "olivier.monnom@gmail.com" }]
 maintainers = [{ name = "Louis Travaux", email = "louis.trvx@gmail.com" }]
 keywords = ["serial", "asyncio", "async", "tty", "epoll", "kqueue"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Framework :: AsyncIO",
     "Operating System :: POSIX",
     "Operating System :: POSIX :: Linux",
