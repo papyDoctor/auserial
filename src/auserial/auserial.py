@@ -88,6 +88,10 @@ class AUSerial:
             attrs[6][termios.VTIME] = 0
 
             termios.tcsetattr(self.fd, termios.TCSANOW, attrs)
+            # Clear any stale bytes in the OS receive buffer from a previous session.
+            # Note: for devices that stream immediately on open (GPS modules, MCUs that print boot banners),
+            # this will discard the first few bytes — almost always desired, but worth knowing.
+            termios.tcflush(self.fd, termios.TCIFLUSH)
         except Exception:
             os.close(self.fd)
             raise

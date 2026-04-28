@@ -378,3 +378,14 @@ async def test_read_until_with_non_matching_surplus(pty_pair):
         os.write(master_fd, b"rld\r\n")
         data2 = await asyncio.wait_for(serial.read_until(b"\r\n"), timeout=1.0)
         assert data2 == b"world\r\n"
+
+
+async def test_constructor_flushes_stale_input(pty_pair: tuple[int, str]) -> None:
+    master_fd, slave_path = pty_pair
+    os.write(master_fd, b"stale_from_previous_session")
+
+    async with AUSerial(slave_path) as serial:
+        # The constructor's tcflush should have discarded the stale bytes —
+        # so read() now has nothing to return and must time out.
+        with pytest.raises(TimeoutError):
+            await asyncio.wait_for(serial.read(64), timeout=0.1)
