@@ -28,10 +28,16 @@ classifiers = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "pytest-asyncio>=0.23"]
+docs = [
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.25",
+]
 
 [project.urls]
 Repository = "https://github.com/papyDoctor/auserial"
 Issues = "https://github.com/papyDoctor/auserial/issues"
+Changelog = "https://github.com/papyDoctor/auserial/releases"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/auserial"]
