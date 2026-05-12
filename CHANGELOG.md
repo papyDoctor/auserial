@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] — 2026-05-12
+
+Documentation release — no code changes. The wheel/sdist now ship the
+`Changelog` PyPI link and the `CHANGELOG.md` file.
+
+### Added
+- `Changelog` URL in `[project.urls]` → appears in the sidebar of the
+  PyPI project page.
+- `CHANGELOG.md` shipped in the sdist.
+- MkDocs site published on [Read the Docs](https://auserial.readthedocs.io/),
+  with API reference auto-generated from docstrings.
+- `docs` optional-dependency group (`pip install 'auserial[docs]'`).
+
 ## [1.0.0] — 2026-04-28
 
 First stable release. Public API is now considered stable; breaking changes
@@ -75,6 +88,7 @@ Initial public release.
 - Examples: `minimal.py`, `timeout.py`, `read_until.py`, `read_exactly.py`,
   `good_way_to_use.py`.
 
+[1.0.1]: https://github.com/papyDoctor/auserial/releases/tag/v1.0.1
 [1.0.0]: https://github.com/papyDoctor/auserial/releases/tag/v1.0.0
 [0.4.2]: https://github.com/papyDoctor/auserial/releases/tag/v0.4.2
 [0.4.1]: https://github.com/papyDoctor/auserial/releases/tag/v0.4.1
